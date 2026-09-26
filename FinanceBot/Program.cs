@@ -1,5 +1,7 @@
 using DotNetEnv.Configuration;
+using FinanceBot.Data;
 using FinanceBot.Workers;
+using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +14,10 @@ if (string.IsNullOrWhiteSpace(botToken))
 
 builder.Services.AddSingleton(new TelegramBotClient(botToken));
 builder.Services.AddHostedService<TelegramPollingWorker>();
+
+// ---------- Database Configuration -----------
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DB:ConnectionString")));
 
 var app = builder.Build();
 
