@@ -23,8 +23,8 @@ builder.Services.AddHostedService<TelegramPollingWorker>();
 
 
 // ------------- Register Commands ---------------
-builder.Services.AddSingleton<ICommand, StartCommand>();
-builder.Services.AddSingleton<ICommandFactory, CommandFactory>();
+builder.Services.AddScoped<ICommand, StartCommand>();
+builder.Services.AddScoped<ICommandFactory, CommandFactory>();
 
 
 var app = builder.Build();

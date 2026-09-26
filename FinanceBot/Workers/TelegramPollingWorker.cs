@@ -7,12 +7,12 @@ namespace FinanceBot.Workers;
 public class TelegramPollingWorker : BackgroundService
 {
     private readonly TelegramBotClient _bot;
-    private readonly ICommandFactory _commandFactory;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public TelegramPollingWorker(TelegramBotClient bot, ICommandFactory commandFactory)
+    public TelegramPollingWorker(TelegramBotClient bot, IServiceScopeFactory scopeFactory)
     {
         _bot = bot;
-        _commandFactory = commandFactory;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -25,7 +25,10 @@ public class TelegramPollingWorker : BackgroundService
     {
         if (update.Message?.Text is not string text) return;
 
-        var command = _commandFactory.Resolve(text.Trim());
+        using var scope = _scopeFactory.CreateScope();
+        var commandFactory = scope.ServiceProvider.GetRequiredService<ICommandFactory>(); // resolved here, not in constructor
+
+        var command = commandFactory.Resolve(text.Trim());
         await command.ExecuteAsync(bot, update.Message.Chat.Id, text.Trim(), ct);
     }
 
