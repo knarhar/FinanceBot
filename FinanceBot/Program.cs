@@ -25,7 +25,7 @@ builder.Services.AddHostedService<TelegramPollingWorker>();
 
 // ---------- Database Configuration -----------
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DB:ConnectionString")));
+    opt.UseNpgsql(builder.Configuration["DB:ConnectionString"]));
 
 // ------------- Register Commands ---------------
 builder.Services.AddScoped<ICommand, StartCommand>();
