@@ -42,6 +42,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 // ------------- Register Commands ---------------
 builder.Services.AddKeyedScoped<ICommandHandler, StartCommandHandler>(CommandKeys.Start);
+builder.Services.AddKeyedScoped<ICommandHandler, SpendingCommandHandler>(CommandKeys.Spending);
 builder.Services.AddKeyedScoped<ICommandHandler, UnknownCommandHandler>(CommandKeys.Unknown);
 
 builder.Services.AddSingleton<BotUpdateHandler>();

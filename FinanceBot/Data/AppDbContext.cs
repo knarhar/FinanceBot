@@ -31,7 +31,7 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("Spending");
             entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.ChatId).IsUnique();
+            entity.HasIndex(e => e.ChatId);
             entity.Property(e => e.Amount).HasPrecision(18, 2);
             entity.Property(e => e.Category).HasMaxLength(64).IsRequired();
             entity.Property(e => e.Note).HasMaxLength(500);
