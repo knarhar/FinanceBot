@@ -23,7 +23,7 @@ builder.Services.AddSingleton(messages);
 builder.Services.AddSingleton(new TelegramBotClient(botToken));
 builder.Services.AddHostedService<TelegramPollingWorker>();
 
-// ---------- Database Configuration -----------
+// ----------- Database Configuration ------------
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration["DB:ConnectionString"]));
 
