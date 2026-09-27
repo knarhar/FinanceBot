@@ -2,7 +2,7 @@ using FinanceBot.Handlers;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
-namespace FinanceBot.Workers;
+namespace FinanceBot.Services;
 
 public class TelegramPollingWorker : BackgroundService
 {
