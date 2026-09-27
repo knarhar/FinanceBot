@@ -3,7 +3,7 @@ using DotNetEnv.Configuration;
 using FinanceBot.Data;
 using FinanceBot.Commands;
 using FinanceBot.Handlers;
-using FinanceBot.Workers;
+using FinanceBot.Services;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 
@@ -15,16 +15,26 @@ var botToken = builder.Configuration["Telegram:BotToken"];
 if (string.IsNullOrWhiteSpace(botToken))
     throw new Exception("Telegram:BotToken is missing — check your .env file");
 
+var updateMode = builder.Configuration["Telegram:UpdateMode"] ?? "Polling";
+
 // ------------ Load message templates ------------
 var messagesJson = File.ReadAllText("Resources/messageTemplates.json");
 var messages = JsonSerializer.Deserialize<MessageTemplates>(messagesJson,
     new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
 
 builder.Services.AddSingleton(messages);
-
 builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(botToken));
 
-builder.Services.AddHostedService<TelegramPollingWorker>();
+// ----------- Polling vs Webhook -----------
+if (updateMode == "Webhook")
+{
+    builder.Services.AddControllers();
+    builder.Services.AddHostedService<TelegramWebhookService>();
+}
+else
+{
+    builder.Services.AddHostedService<TelegramPollingWorker>();
+}
 
 // ----------- Database Configuration ------------
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -34,14 +44,13 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 builder.Services.AddKeyedScoped<ICommandHandler, StartCommandHandler>(CommandKeys.Start);
 builder.Services.AddKeyedScoped<ICommandHandler, UnknownCommandHandler>(CommandKeys.Unknown);
 
-
 builder.Services.AddSingleton<BotUpdateHandler>();
 
-
-//builder.Services.AddScoped<ICommand, StartCommand>();
-//builder.Services.AddScoped<ICommandFactory, CommandFactory>();
-
-
 var app = builder.Build();
+
+if (updateMode == "Webhook")
+{
+    app.MapControllers();
+}
 
 app.Run();
