@@ -45,6 +45,12 @@ builder.Services.AddKeyedScoped<ICommandHandler, StartCommandHandler>(CommandKey
 builder.Services.AddKeyedScoped<ICommandHandler, SpendingCommandHandler>(CommandKeys.Spending);
 builder.Services.AddKeyedScoped<ICommandHandler, UnknownCommandHandler>(CommandKeys.Unknown);
 
+//NEW Command
+builder.Services.AddKeyedScoped<ICommandHandler, TodayCommandHandler>(CommandKeys.Today);
+builder.Services.AddKeyedScoped<ICommandHandler, MonthCommandHandler>(CommandKeys.Month);
+builder.Services.AddScoped<RecapService>();
+    
+
 builder.Services.AddSingleton<BotUpdateHandler>();
 
 var app = builder.Build();
