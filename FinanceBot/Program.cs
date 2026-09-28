@@ -4,7 +4,6 @@ using FinanceBot.Data;
 using FinanceBot.Commands;
 using FinanceBot.Handlers;
 using FinanceBot.Services;
-using FinanceBot.Workers;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 

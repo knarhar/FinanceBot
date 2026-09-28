@@ -1,9 +1,8 @@
 using FinanceBot.Data;
-using FinanceBot.Services;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 
-namespace FinanceBot.Workers;
+namespace FinanceBot.Services;
 
 // Runs in the background for the whole life of the app.
 // Once per UTC day it sends the recap to every eligible chat.
@@ -29,8 +28,8 @@ public class DailyDigestWorker : BackgroundService
     // The framework calls this once at app start.
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        
-        //await SendDigestAsync(ct); <-- uncomment to test
+        // uncomment to check
+        //await SendDigestAsync(ct); 
 
         try
         {
