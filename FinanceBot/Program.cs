@@ -4,6 +4,7 @@ using FinanceBot.Data;
 using FinanceBot.Commands;
 using FinanceBot.Handlers;
 using FinanceBot.Services;
+using FinanceBot.Workers;
 using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 
@@ -49,6 +50,7 @@ builder.Services.AddKeyedScoped<ICommandHandler, UnknownCommandHandler>(CommandK
 builder.Services.AddKeyedScoped<ICommandHandler, TodayCommandHandler>(CommandKeys.Today);
 builder.Services.AddKeyedScoped<ICommandHandler, MonthCommandHandler>(CommandKeys.Month);
 builder.Services.AddScoped<RecapService>();
+builder.Services.AddHostedService<DailyDigestWorker>();
     
 
 builder.Services.AddSingleton<BotUpdateHandler>();
