@@ -49,6 +49,7 @@ builder.Services.AddKeyedScoped<ICommandHandler, UnknownCommandHandler>(CommandK
 builder.Services.AddKeyedScoped<ICommandHandler, TodayCommandHandler>(CommandKeys.Today);
 builder.Services.AddKeyedScoped<ICommandHandler, MonthCommandHandler>(CommandKeys.Month);
 builder.Services.AddScoped<RecapService>();
+builder.Services.AddHostedService<DailyDigestWorker>();
     
 
 builder.Services.AddSingleton<BotUpdateHandler>();
