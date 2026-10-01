@@ -43,6 +43,13 @@ public class StartCommandHandler : ICommandHandler
 
         // Whether this chat is brand new or already registered,
         // always reply with the start message.
-        await _bot.SendMessage(chatId, _messages.StartMessage, cancellationToken: cancellationToken);
+        var reply = MessageTemplates.Format(_messages.StartMessage, new()
+        {
+            ["exampleAmount"] = "4.50",
+            ["exampleCategory"] = "coffee",
+            ["exampleNote"] = "with milk"
+        });
+
+        await _bot.SendMessage(chatId, reply, cancellationToken: cancellationToken);
     }
 }
