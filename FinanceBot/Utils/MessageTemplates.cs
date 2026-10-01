@@ -3,6 +3,10 @@ public class MessageTemplates
     public string StartMessage { get; set; } = "";
     public string AddSpendingMessage { get; set; } = "";
     public string InvalidFormatMessage { get; set; } = "";
+    public string InvalidAmountMessage { get; set; } = "";
+    public string NonPositiveAmountMessage { get; set; } = "";
+    public string MissingCategoryMessage { get; set; } = "";
+    public string InvalidCategoryMessage { get; set; } = "";
     public string NotStartedMessage { get; set; } = "";
     public string TodayEmptyMessage { get; set; } = "";
     public string TodaySummaryMessage { get; set; } = "";
