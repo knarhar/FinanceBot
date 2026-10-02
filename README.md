@@ -1,7 +1,8 @@
 # FinanceBot
 
 A Telegram bot that tracks your spending. Send it `4.50 coffee with milk` and it
-saves the entry; ask it `/today` or `/month` and it replies with a recap.
+saves the entry; ask it `/today` or `/month` and it replies with a recap. Every
+day it also sends an automatic digest, with a link to a full report page.
 
 Built with ASP.NET Core (net9.0), Telegram.Bot and EF Core on PostgreSQL.
 
@@ -15,6 +16,7 @@ Telegram__BotToken=your-bot-token-here
 Telegram__Currency=AMD
 Telegram__DigestHourUtc=18
 Telegram__UpdateMode=Polling
+Telegram__WebhookSecret=some-random-string
 PublicBaseUrl=https://your-public-url
 DB__ConnectionString=Host=localhost;Database=financebot;Username=postgres;Password=postgres
 ```
@@ -59,8 +61,19 @@ suffix too (`/today@MyBot`).
   back if it can't be parsed); an unrecognised `/command` falls through to
   `UnknownCommandHandler`.
 - `SpendingParser` turns `<amount> <category> [note]` into a `ParsedSpending`.
-- `RecapService` computes the `/month` figures in a single query and returns them
-  as placeholder values.
+- `RecapService` computes the recap/report figures in one query per chat and
+  exposes two methods: `BuildPlaceholdersAsync` (used by `/month` and the daily
+  digest — returns `null` for a chat with no spendings this month, so nothing
+  is sent) and `GetReportAsync` (used by the report page — always returns data,
+  even if every total is zero, since a direct link visit shouldn't 404).
+- `DailyDigestWorker` runs once per UTC day at `Telegram__DigestHourUtc`, sends
+  a recap to every chat with at least one spending this month, and schedules
+  itself off `DateTime.UtcNow` rather than a fixed delay, so a restart doesn't
+  shift the next run.
+- `ReportController` serves `GET /report/{token}`, looks the chat up by token
+  (404 if not found) and renders `Views/Report/Get.cshtml` inside a shared
+  layout (`Views/Shared/_Layout.cshtml`) with month/week stats, the full
+  category breakdown, a 14-day table and the last 20 spendings.
 - All user-facing text lives in `Resources/messageTemplates.json`, with
   `{placeholder}` substitution via `MessageTemplates.Format`.
 
@@ -68,8 +81,8 @@ suffix too (`/today@MyBot`).
 
 - `Chat` — one row per Telegram chat: `TelegramChatId` (unique), `ReportToken`
   (unique), `StartedAt`.
-- `Spending` — `Amount` (18,2), `Category`, optional `Note`, `SpentAt`, FK to
-  `Chat` with cascade delete.
+- `Spending` — `Amount` (12,2), `Category`, optional `Note`, `SpentAt`, FK to
+  `Chat` (one chat, many spendings).
 
 Timestamps are stored and compared in UTC.
 
@@ -78,13 +91,17 @@ Timestamps are stored and compared in UTC.
 Set `Telegram__UpdateMode=Webhook`, point `PublicBaseUrl` at a public HTTPS URL
 (ngrok works for local development) and set `Telegram__WebhookSecret`. The bot
 registers `{PublicBaseUrl}/bot/{secret}` on startup and removes it on shutdown.
-Requests with the wrong secret get a 404.
+Requests with the wrong secret get a 404. Note: `Telegram.Bot` 22.4.3 needs
+explicit JSON serializer options (`JsonBotAPI.Options`) to deserialize
+webhook payloads correctly — this is handled in `WebhookController` and becomes
+unnecessary if the package is upgraded to 22.5+.
 
-## Not implemented yet
+## Report page
 
-- `/history` command
-- Daily digest worker (the `dailyDigestMessage` template and
-  `Telegram__DigestHourUtc` are in place, the worker is not)
-- Report page at `/report/{token}` (the `/month` link points at it already)
+`GET /report/{token}` — the long-form version of the daily digest for one chat.
+Shows month total/count, last 7 vs previous 7 days, typical day, the full
+category breakdown (not just top 3), a day-by-day table for the last 14 days,
+and the last 20 individual spendings. An unknown token returns 404; the token
+is never exposed as the Telegram chat ID.
 
 **Note:** `.env` holds real secrets — keep it out of git.
