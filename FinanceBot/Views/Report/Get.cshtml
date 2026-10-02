@@ -1,0 +1,79 @@
+@model FinanceBot.Services.RecapService.ReportData
+@{
+    ViewData["Title"] = "Spending Report";
+    var maxCategoryTotal = Model.CategoryBreakdown.Any() ? Model.CategoryBreakdown.Max(c => c.Total) : 1;
+}
+
+<h1>Spending Report</h1>
+<p class="note">@DateTime.UtcNow.ToString("MMMM yyyy")</p>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">This month</div>
+        <div class="value">@Model.MonthTotal @Model.Currency</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Entries</div>
+        <div class="value">@Model.MonthCount</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Last 7 days</div>
+        <div class="value">@Model.Last7Total @Model.Currency</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Previous 7 days</div>
+        <div class="value">@Model.Prev7Total @Model.Currency</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Typical day</div>
+        <div class="value">@Model.TypicalDay @Model.Currency</div>
+    </div>
+</div>
+
+<h2>Category Breakdown</h2>
+<table>
+    <tbody>
+    @foreach (var c in Model.CategoryBreakdown)
+    {
+        <tr>
+            <td style="width: 40%">
+                @c.Category
+                <div class="bar-track">
+                    <div class="bar-fill" style="width: @((c.Total / maxCategoryTotal * 100).ToString("F0"))%"></div>
+                </div>
+            </td>
+            <td class="amount">@c.Total @Model.Currency</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<h2>Last 14 Days</h2>
+<table>
+    <thead><tr><th>Date</th><th>Total</th></tr></thead>
+    <tbody>
+    @foreach (var d in Model.DailyTotals)
+    {
+        <tr>
+            <td>@d.Date.ToString("MMM d")</td>
+            <td class="amount">@d.Total @Model.Currency</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<h2>Recent Spendings</h2>
+<table>
+    <thead><tr><th>Date</th><th>Category</th><th>Amount</th><th>Note</th></tr></thead>
+    <tbody>
+    @foreach (var s in Model.RecentSpendings)
+    {
+        <tr>
+            <td>@s.SpentAt.ToString("MMM d, HH:mm")</td>
+            <td>@s.Category</td>
+            <td class="amount">@s.Amount @Model.Currency</td>
+            <td class="note">@s.Note</td>
+        </tr>
+    }
+    </tbody>
+</table>
