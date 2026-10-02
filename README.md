@@ -21,16 +21,17 @@ PublicBaseUrl=https://your-public-url
 DB__ConnectionString=Host=localhost;Database=financebot;Username=postgres;Password=postgres
 ```
 
-3. Apply the migrations:
+3. Apply the migrations (run from the `FinanceBot/` folder, so `.env` is found):
 
 ```
-dotnet ef database update --project FinanceBot
+cd FinanceBot
+dotnet ef database update
 ```
 
-4. Run:
+4. Run (from the same folder):
 
 ```
-dotnet run --project FinanceBot
+dotnet run
 ```
 
 5. Message the bot on Telegram and send `/start`.
@@ -57,15 +58,17 @@ suffix too (`/today@MyBot`).
   `Telegram__UpdateMode` (`Polling` or `Webhook`).
 - `BotUpdateHandler` maps the incoming text to a command key via
   `CommandKeys.FromText` and resolves the matching `ICommandHandler`. Text that
-  doesn't start with `/` is treated as a spending entry (and gets a format hint
-  back if it can't be parsed); an unrecognised `/command` falls through to
-  `UnknownCommandHandler`.
+  doesn't start with `/` is treated as a spending entry; if it can't be parsed,
+  the bot replies with one line saying why (bad amount, amount not above 0,
+  missing category, or category not letters-only). An unrecognised `/command`
+  falls through to `UnknownCommandHandler`.
 - `SpendingParser` turns `<amount> <category> [note]` into a `ParsedSpending`.
-- `RecapService` computes the recap/report figures in one query per chat and
-  exposes two methods: `BuildPlaceholdersAsync` (used by `/month` and the daily
-  digest — returns `null` for a chat with no spendings this month, so nothing
-  is sent) and `GetReportAsync` (used by the report page — always returns data,
-  even if every total is zero, since a direct link visit shouldn't 404).
+- `RecapService` computes the recap/report figures for one chat and exposes two
+  methods: `BuildPlaceholdersAsync` (used by `/month` and the daily digest —
+  one query; returns `null` for a chat with no spendings this month, so nothing
+  is sent) and `GetReportAsync` (used by the report page — two queries, one for
+  the date windows and one for the last 20 spendings; always returns data, even
+  if every total is zero, since a direct link visit shouldn't 404).
 - `DailyDigestWorker` runs once per UTC day at `Telegram__DigestHourUtc`, sends
   a recap to every chat with at least one spending this month, and schedules
   itself off `DateTime.UtcNow` rather than a fixed delay, so a restart doesn't
@@ -81,7 +84,7 @@ suffix too (`/today@MyBot`).
 
 - `Chat` — one row per Telegram chat: `TelegramChatId` (unique), `ReportToken`
   (unique), `StartedAt`.
-- `Spending` — `Amount` (12,2), `Category`, optional `Note`, `SpentAt`, FK to
+- `Spending` — `Amount` (18,2), `Category`, optional `Note`, `SpentAt`, FK to
   `Chat` (one chat, many spendings).
 
 Timestamps are stored and compared in UTC.
@@ -101,7 +104,7 @@ unnecessary if the package is upgraded to 22.5+.
 `GET /report/{token}` — the long-form version of the daily digest for one chat.
 Shows month total/count, last 7 vs previous 7 days, typical day, the full
 category breakdown (not just top 3), a day-by-day table for the last 14 days,
-and the last 20 individual spendings. An unknown token returns 404; the token
-is never exposed as the Telegram chat ID.
+and the last 20 individual spendings. An unknown token returns 404. The URL
+uses a random token, never the Telegram chat ID.
 
 **Note:** `.env` holds real secrets — keep it out of git.
